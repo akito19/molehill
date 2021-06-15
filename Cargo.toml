@@ -1,0 +1,12 @@
+[package]
+name = "molehill"
+version = "0.1.0"
+authors = ["Akito Kasai <kasai@akito19.com>"]
+edition = "2018"
+license = "Apache-2.0"
+description = "This tools allows you to generate Digdag workflow templates."
+repository = "https://github.com/akito19/molehill"
+categories = ["command-line-interface"]
+keywords = ["Digdag", "template"]
+
+[dependencies]
