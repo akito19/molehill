@@ -10,3 +10,4 @@ categories = ["command-line-interface"]
 keywords = ["Digdag", "template"]
 
 [dependencies]
+exitcode = "1.1.2"

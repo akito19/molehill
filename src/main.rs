@@ -1,6 +1,8 @@
 use std::env;
-
+use std::process;
 use molehill::generate_default_files;
+
+extern crate exitcode;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -11,9 +13,11 @@ fn main() {
     match generate_default_files() {
         Ok(()) => {
             println!("Generated Digdag workflow files!");
+            process::exit(exitcode::OK);
         }
         Err(e) => {
-            println!("Error: {}", e);
+            eprintln!("Error: {}", e);
+            process::exit(exitcode::IOERR);
         }
     }
 }
