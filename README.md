@@ -9,13 +9,17 @@ Molehill is a tool that generates a [Digdag](https://www.digdag.io/) workflow te
 
 Note that it assumes using Treasure Data workflow.
 
-### Install
+## Install
+
+This tool has required building from source yet.
 
 ```
+$ git clone https://github.com/akito19/molehill.git
+$ cd molehill
 $ cargo install --path .
 ```
 
-### Usage
+## Usage
 
 You can find options by `-h` or `--help` option.
 ```
@@ -34,11 +38,9 @@ OPTIONS:
     -t, --template <PATH>    Set Digdag workflow template directory.
 ```
 
-NOTE: Current implementation allows a few extensions such as `*.dig`, `*.sql`, `*.py`, `*.html`, and `*.txt`.
-And the tool ignores nested directory.
+Note that if you have nested directory within a template directory, the nested one will be ignored.
 
-
-### Development
+## Development
 
 ```
 $ git clone https://github.com/akito19/molehill.git
@@ -47,3 +49,6 @@ $ cargo build // Build
 $ cargo test // Run unit tests
 ```
 
+## Contirbuting
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/akito19/molehill.
