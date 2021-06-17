@@ -1,6 +1,6 @@
-# MoleHill
+# Molehill
 
-MailMole is a tool that generates a [Digdag](https://www.digdag.io/) workflow template. The template helps to create Digdag workflow for sending a campaign via [MailChimp](https://mailchimp.com/):
+Molehill is a tool that generates a [Digdag](https://www.digdag.io/) workflow template. The template helps to create Digdag workflow for sending a campaign via [Mailchimp](https://mailchimp.com/):
 
 - Create an Audience.
 - Set merge fields.
@@ -18,7 +18,19 @@ $ cargo install --path .
 ### Usage
 
 ```
-$ molehill
+$ molehill -h
+Generate Workflow template files.
+
+USAGE:
+    molehill [OPTIONS]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -o, --output <PATH>      Output file path.
+    -t, --template <PATH>    Set Digdag workflow template directory.
 ```
 
 ### Development
