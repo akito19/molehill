@@ -17,6 +17,7 @@ $ cargo install --path .
 
 ### Usage
 
+You can find options by `-h` or `--help` option.
 ```
 $ molehill -h
 Generate Workflow template files.
@@ -32,6 +33,10 @@ OPTIONS:
     -o, --output <PATH>      Output file path.
     -t, --template <PATH>    Set Digdag workflow template directory.
 ```
+
+NOTE: Current implementation allows a few extensions such as `*.dig`, `*.sql`, `*.py`, `*.html`, and `*.txt`.
+And the tool ignores nested directory.
+
 
 ### Development
 

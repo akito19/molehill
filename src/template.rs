@@ -55,3 +55,31 @@ fn generate(wf: Workflow) {
     write!(dest, "{}", content).unwrap();
     dest.flush().unwrap();
 }
+
+#[test]
+#[allow(unused_must_use)]
+fn valid_extension() {
+    fs::create_dir_all("dir").unwrap();
+    let mut file_dig = File::create("dir/foo.dig").unwrap();
+    file_dig.write_all(b"echo>: hello").unwrap();
+
+    let mut file_py = File::create("dir/foo.py").unwrap();
+    file_py.write_all(b"printf('hello')").unwrap();
+
+    let mut file_sql = File::create("dir/foo.sql").unwrap();
+    file_sql.write_all(b"select * from users").unwrap();
+
+    let mut file_html = File::create("dir/foo.html").unwrap();
+    file_html.write_all(b"<div>hello</div>");
+
+    let mut file_txt = File::create("dir/foo.txt").unwrap();
+    file_txt.write_all(b"hello");
+
+    let mut file_rb = File::create("dir/foo.rb").unwrap();
+    file_rb.write_all(b"puts 'hello'");
+
+    let entries = get_entries("dir").unwrap();
+    assert_eq!(entries.len(), 5);
+
+    fs::remove_dir_all("dir/").unwrap();
+}
