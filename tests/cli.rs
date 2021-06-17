@@ -10,7 +10,7 @@ fn setup_dir(dir: &str) {
     fs::create_dir_all(dir).unwrap();
 }
 
-fn clean_single_dir(dir: &str) {
+fn clean_dir(dir: &str) {
     fs::remove_dir_all(dir).unwrap();
 }
 
@@ -71,8 +71,7 @@ fn valid_output_option() -> Result<(), Box<dyn Error>> {
     assert!(Path::new("foo/bar/sample.sql").exists());
     assert!(Path::new("foo/bar/template.html").exists());
 
-    clean_single_dir("foo/bar");
-    clean_single_dir("foo");
+    clean_dir("foo");
     Ok(())
 }
 
@@ -123,6 +122,6 @@ fn with_options() -> Result<(), Box<dyn Error>> {
     assert!(Path::new("baz/bar.sql").exists());
     assert!(Path::new("baz/foo.dig").exists());
 
-    clean_single_dir(dir);
+    clean_dir(dir);
     Ok(())
 }
