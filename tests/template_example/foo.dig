@@ -1,0 +1,8 @@
+_export:
+  foo: var
+
++task:
+  echo>: "Hello"
+
++job:
+  td>: bar.sql
