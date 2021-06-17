@@ -22,6 +22,7 @@ $ cargo install --path .
 ## Usage
 
 You can find options by `-h` or `--help` option.
+
 ```
 $ molehill -h
 Generate Workflow template files.
@@ -36,6 +37,19 @@ FLAGS:
 OPTIONS:
     -o, --output <PATH>      Output file path.
     -t, --template <PATH>    Set Digdag workflow template directory.
+```
+
+The tool generates files wihout options like:
+
+```
+$ molehill
+```
+
+If you run `molehill` without option, generates [default files](https://github.com/akito19/molehill/tree/main/src/examples).
+Thus, when you have already template directory within your machine, `--template` option is available:
+
+```
+$ molehill -t path/to/template
 ```
 
 Note that if you have nested directory within a template directory, the nested one will be ignored.
