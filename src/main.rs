@@ -23,7 +23,7 @@ fn main() {
             .long("output")
             .value_name("PATH")
             .default_value(".")
-            .about("Output file path.")
+            .about("Output file path. The current directory is to default.")
             .takes_value(true))
         .get_matches();
 
