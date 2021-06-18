@@ -84,12 +84,12 @@ def create_audience(mailchimp, reason, audience_name):
             "language": "EN_US"
         },
         "contact": {
-            "company": "Treasure Data Inc.",
-            "address1": "2565 Leghorn St.",
+            "company": "Company name, Inc.",
+            "address1": "Foo Street.",
             "address2": "",
-            "city": "Mountain View",
+            "city": "Some City",
             "state": "CA",
-            "zip": "94043",
+            "zip": "123456",
             "country": "US"
         }
     }
@@ -190,8 +190,8 @@ def create_campaign(mailchimp, template_id, campaign_ja, campaign_en):
             "subject_line": "subject line",
             "preview_text": "preview text",
             "title": campaign_ja,
-            "from_name": "Treasure Data Support",
-            "reply_to": SUPPORT_EMAIL,
+            "from_name": "{your_name}",
+            "reply_to": FROM_EMAIL,
             "use_conversation": False,
             "to_name": "email_address",
             "template_id": template_id,
@@ -205,8 +205,8 @@ def create_campaign(mailchimp, template_id, campaign_ja, campaign_en):
             "subject_line": "subject line",
             "preview_text": "preview text",
             "title": campaign_en,
-            "from_name": "Treasure Data Support",
-            "reply_to": SUPPORT_EMAIL,
+            "from_name": "{your_name}",
+            "reply_to": FROM_EMAIL,
             "use_conversation": False,
             "to_name": "email_address",
             "template_id": template_id,
