@@ -35,7 +35,7 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -o, --output <PATH>      Output file path.
+    -o, --output <PATH>      Output file path. The current directory is to default.
     -t, --template <PATH>    Set Digdag workflow template directory.
 ```
 

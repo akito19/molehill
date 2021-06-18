@@ -23,19 +23,19 @@ fn main() {
             .long("output")
             .value_name("PATH")
             .default_value(".")
-            .about("Output file path.")
+            .about("Output file path. The current directory is to default.")
             .takes_value(true))
         .get_matches();
 
     let output = matches.value_of("output").unwrap();
 
-    if molehill::unless(Path::new(output.clone()).is_dir()) {
+    if !(Path::new(output.clone()).is_dir()) {
         eprintln!("Specify directory path for `-o` / `--output` option.");
         process::exit(exitcode::USAGE);
     }
 
     if let Some(template) = matches.value_of("template") {
-        if molehill::unless(Path::new(template.clone()).is_dir()) {
+        if !(Path::new(template.clone()).is_dir()) {
             eprintln!("Specify directory path for `-t` / `--template` option.");
             process::exit(exitcode::USAGE);
         }
