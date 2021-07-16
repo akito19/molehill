@@ -10,7 +10,7 @@ use clap::{App, Arg};
 
 fn main() {
     let matches = App::new("MoleHill")
-        .version("0.2.1")
+        .version("0.2.2")
         .about("Generate Workflow template files.")
         .arg(
             Arg::new("template")
