@@ -23,8 +23,7 @@ _export:
   audience_name: 'Audience name'
   reason: 'Write the reason why customers get this notification.'
   template_name: 'Template name (Email content)'
-  campaign_ja: 'campaign name 1'
-  campaign_en: 'campaign name 2'
+  campaign_title: 'campaign name 1'
   # Properties for Treasure Data
   job_id: ${td.last_job_id}
   db: ${td.database} # This value will be used for rejected users.
