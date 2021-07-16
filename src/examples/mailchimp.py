@@ -8,7 +8,7 @@ from mailchimp_marketing.api_client import ApiClientError
 # FIXME: Change this email address
 FROM_EMAIL = "mail@example.com"
 
-def start(audience_name, reason, template_name, campaign_ja, campaign_en, job_id, db, table, email):
+def start(audience_name, reason, template_name, campaign_title, job_id, db, table, email):
     mailchimp = Mailchimp.Client()
     mailchimp.set_config({
         "api_key": os.environ["MAILCHIMP_APIKEY"],
@@ -26,7 +26,7 @@ def start(audience_name, reason, template_name, campaign_ja, campaign_en, job_id
     template_id = upload_template(mailchimp, template_name)
 
     # Campaign
-    create_campaign(mailchimp, template_id, campaign_ja, campaign_en)
+    create_campaign(mailchimp, template_id, campaign_title)
 
 def extract_job_result(job_id, db, table, target_email):
     import tdclient
@@ -179,32 +179,17 @@ def upload_template(mailchimp, template_name):
         sys.exit(1)
 
 # https://mailchimp.com/developer/marketing/api/campaigns/add-campaign/
-def create_campaign(mailchimp, template_id, campaign_ja, campaign_en):
+def create_campaign(mailchimp, template_id, campaign_title):
     if not template_id:
         print('Error: Failed to get the template id')
         sys.exit(1)
 
-    content_ja = {
+    content = {
         "type": "regular",
         "settings": {
             "subject_line": "subject line",
             "preview_text": "preview text",
-            "title": campaign_ja,
-            "from_name": "{your_name}",
-            "reply_to": FROM_EMAIL,
-            "use_conversation": False,
-            "to_name": "email_address",
-            "template_id": template_id,
-            "fb_comments": False
-        }
-    }
-
-    content_en = {
-        "type": "regular",
-        "settings": {
-            "subject_line": "subject line",
-            "preview_text": "preview text",
-            "title": campaign_en,
+            "title": campaign_title,
             "from_name": "{your_name}",
             "reply_to": FROM_EMAIL,
             "use_conversation": False,
@@ -215,10 +200,8 @@ def create_campaign(mailchimp, template_id, campaign_ja, campaign_en):
     }
 
     try:
-        print("Creating a campaing in Japanese version...")
-        mailchimp.campaigns.create(content_ja)
-        print("Creating a campaing in English version...")
-        mailchimp.campaigns.create(content_en)
+        print("Creating a campaing...")
+        mailchimp.campaigns.create(content)
         print("Campaign created")
     except ApiClientError as error:
         print("Error: {}".format(error.text))
@@ -230,8 +213,7 @@ if __name__ == '__main__':
     parser.add_argument("audience_name", help="Audience name", type=str)
     parser.add_argument("reason", help="Reason why customers get this notification", type=str)
     parser.add_argument("template_name", help="Template name", type=str)
-    parser.add_argument("campaign_ja", help="Campaign name (Japanese)", type=str)
-    parser.add_argument("campaign_en", help="Campaign name (English)", type=str)
+    parser.add_argument("campaign_title", help="Campaign name", type=str)
     parser.add_argument("job_id", help="Job ID", type=int)
     parser.add_argument("db", help="Database name for rejected users", type=int)
     parser.add_argument("table", help="Table name for rejected users", type=int)
@@ -239,11 +221,10 @@ if __name__ == '__main__':
     audience_name = args.audience_name
     reason = args.reason
     template_name = args.template_name
-    campaign_ja = args.campaign_ja
-    campaign_en = args.campaign_en
+    campaign_title = args.campaign_title
     job_id = args.job_id
     db = args.db
     table = args.table
     email = args.email
 
-    start(audience_name, reason, template_name, campaign_ja, campaign_en, job_id, email)
+    start(audience_name, reason, template_name, campaign_title, job_id, email)
