@@ -1,0 +1,42 @@
+_export:
+  # Specify a table that ingests rejected users.
+  td:
+    database: your_database
+    table: ticketid_rejected_users
+    sql: sample.sql
+
+  audience:
+    name: 'TICKET-ID XXXXXXXXXXX'
+    reason: 'Write the reason why customers get this notification.'
+    # TODO: Write the notify email address column to match the column name of your query.
+    #       i.e. notification_email, user_email, executor_email, and so on.
+    email_column_name: notification_email
+    mmerge_var:
+      # This is the audience field as variables.
+      # Set variable name within 10 characters.
+      # Default value is MMERGE5, MMERGE6, ....
+      mmerge5: DATE
+      mmerge6: COMPANY
+      mmerge7: ACCOUNT
+      mmerge8: OWNER
+      mmerge9: STATUS
+      mmerge10: JOBID
+
+  campaign:
+    language:
+      # Use true/false
+      english: true
+      japanese: false
+
+    from_name: 'YOUR TEAM'
+
+    name_ja: 'Campaign Name XXXXXXXXXXX (JA)'
+    name_en: 'Campaign Name XXXXXXXXXXX (EN)'
+
+    # The `false` language is ignored.
+    template:
+      name_ja: 'Template FOO (JA)'
+      name_en: 'Template FOO (EN)'
+
+      file_ja: 'template-ja.html'
+      file_en: 'template-en.html'

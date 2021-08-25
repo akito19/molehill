@@ -1,7 +1,4 @@
-_export:
-  td:
-    database: your_database
-    table: your_table
+!include: 'config.dig'
 
 +prep_table:
   # Rejected users will be assigned to this table.
@@ -9,7 +6,7 @@ _export:
   empty_tables: ["${td.table}"]
 
 +exec_job:
-  td>: sample.sql
+  td>: ${td.sql}
 
 +custom_script:
   py>: mailchimp.start
@@ -17,19 +14,29 @@ _export:
     # NOTE: Using secrets feature is better.
     MAILCHIMP_APIKEY: 'your Mailchimp API key'
     MAILCHIMP_SERVER: 'user Mailchimp server'
-    TD_API_KEY: 'your Treasure Data api key'
+    # FIXME: Please use your TD API key when using Treasure Data
+    TD_API_KEY: '${secret:td.apikey}'
     TD_API_SERVER: 'https://api.treasuredata.com'
   # Properties for Mailchimp
-  audience_name: 'Audience name'
-  reason: 'Write the reason why customers get this notification.'
-  template_name: 'Template name (Email content)'
-  campaign_title: 'campaign name 1'
+  audience_name: ${audience.name}
+  reason: ${audience.reason}
+  mmerges: ${audience.mmerge_var}
+  # Template name have to be within 50 characters
+  template_name_ja: ${campaign.template.name_ja}
+  template_name_en: ${campaign.template.name_en}
+  template_file_ja: ${campaign.template.file_ja}
+  template_file_en: ${campaign.template.file_en}
+  campaign_ja: ${campaign.name_ja}
+  campaign_en: ${campaign.name_en}
+  from_name: ${campaign.from_name}
+  # Language
+  lang_ja: ${campaign.language.japanese}
+  lang_en: ${campaign.language.english}
+
   # Properties for Treasure Data
   job_id: ${td.last_job_id}
-  db: ${td.database} # This value will be used for rejected users.
-  table: ${td.table} # This value will be used for rejected users.
-  # TODO: Write the notify email address column to match the column name of your query.
-  #       i.e. notification_email, user_email, executor_email, and so on.
-  email: notification_email
+  db: ${td.database}
+  table: ${td.table}
+  email: ${audience.email_column_name}
   docker:
     image: "digdag/digdag-python:3.9"
