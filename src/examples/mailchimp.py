@@ -8,7 +8,29 @@ from mailchimp_marketing.api_client import ApiClientError
 # FIXME: Change this email address
 FROM_EMAIL = "mail@example.com"
 
-def start(audience_name, reason, template_name, campaign_title, job_id, db, table, email):
+def _isja(lang_ja):
+    if lang_ja == 'true':
+        return True
+    else:
+        return False
+
+def _isen(lang_en):
+    if lang_en == 'true':
+        return True
+    else:
+        return False
+
+def start(
+        audience_name,
+        reason,
+        template_name_ja,
+        template_name_en,
+        template_file_ja,
+        template_file_en,
+        campaign_ja,
+        campaign_en,
+        from_name,
+        job_id, db, table, email):
     mailchimp = Mailchimp.Client()
     mailchimp.set_config({
         "api_key": os.environ["MAILCHIMP_APIKEY"],
@@ -18,15 +40,45 @@ def start(audience_name, reason, template_name, campaign_title, job_id, db, tabl
     accounts = extract_job_result(job_id, db, table, email)
 
     # Audience
-    list_id = create_audience(mailchimp, reason, audience_name)
+    list_id = create_audience(mailchimp, reason, audience_name, from_name)
     add_merge_fields(mailchimp, list_id, accounts, email)
     add_subscriber(mailchimp, list_id, accounts, email)
 
+    ja = _isja(lang_ja)
+    en = _isen(lang_en)
     # Template
-    template_id = upload_template(mailchimp, template_name)
+    templates = []
+    if ja and en:
+        template_list = [
+            {"name": template_name_ja, "file": template_file_ja, "lang": JAPANESE},
+            {"name": template_name_en, "file": template_file_en, "lang": ENGLISH}
+        ]
+        for template_info in template_list:
+            tid = upload_template(mailchimp, template_info)
+            template = {"id": tid, "lang": template_info["lang"]}
+            templates.append(template)
 
-    # Campaign
-    create_campaign(mailchimp, template_id, campaign_title)
+        ## Campaign
+        create_campaign(mailchimp, templates, from_name, campaign_ja, campaign_en)
+    elif ja:
+        template = {"name": template_name_ja, "file": template_file_ja, "lang": JAPANESE}
+        tid = upload_template(mailchimp, template)
+        tmpl = {"id": tid, "lang": template["lang"]}
+        templates.append(tmpl)
+
+        ## Campaign
+        create_campaign(mailchimp, templates, from_name, title_ja=campaign_ja)
+    elif en:
+        template = {"name": template_name_en, "file": template_file_en, "lang": ENGLISH}
+        tid = upload_template(mailchimp, template)
+        tmpl = {"id": tid, "lang": template["lang"]}
+        templates.append(tmpl)
+
+        ## Campaign
+        create_campaign(mailchimp, templates, from_name, title_en=campaign_en)
+    else:
+        print("Invalid Language settings")
+        sys.exit(1)
 
 def extract_job_result(job_id, db, table, target_email):
     import tdclient
@@ -69,16 +121,21 @@ def extract_job_result(job_id, db, table, target_email):
         td.import_file(db, table, "json", "/home/td-user/reject.json")
         print(f'===== Import issued ({db}.{table}) ======')
 
-        return results
+        # Mailchimp restricts 500 items each upload.
+        return list(_split_list(result, 500))
+
+def _split_list(lst, num):
+    for idx in range(0, len(lst), num):
+        yield lst[idx:idx + num]
 
 # https://mailchimp.com/developer/marketing/api/lists/add-list/
-def create_audience(mailchimp, reason, audience_name):
+def create_audience(mailchimp, reason, audience_name, from_name):
     body = {
         "name": audience_name,
         "permission_reminder": reason,
         "email_type_option": False,
         "campaign_defaults": {
-            "from_name": "FROM name", # FIXME: Change from name
+            "from_name": from_name,
             "from_email": FROM_EMAIL,
             "subject": audience_name,
             "language": "EN_US"
@@ -105,20 +162,28 @@ def create_audience(mailchimp, reason, audience_name):
 # https://mailchimp.com/developer/marketing/api/list-merges/add-merge-field/
 def add_merge_fields(mailchimp, list_id, accounts, email):
     merge_fields = {}
+    tags = json.loads(mmerges).values()
+    idx = 0
     for key in list(accounts[0].keys()):
         # The parameter is used for EMAIL.
         if key == email:
             continue
 
-        # Tag lengths have only 10 letters.
-        # If you'd like to specify TAG such as MMERGE1, MMERGE2, and etc., add `"key": "MERGE_VAR"` property.
-        merge_fields.update({"name": key, "type": "text"})
+        merge_fields.update({"name": key, "type": "text", "tag": list(tags)[idx]})
+        idx += 1
+
         try:
             response = mailchimp.lists.add_list_merge_field(list_id, merge_fields)
             print("Response for merge field addition: {}".format(response))
         except ApiClientError as error:
             print("Error: {}".format(error.text))
             sys.exit(1)
+
+def _val(val):
+    if val is None:
+        return ''
+    else:
+        return val
 
 # https://mailchimp.com/developer/marketing/api/list-clients/
 def add_subscriber(mailchimp, list_id, accounts, email):
@@ -128,40 +193,35 @@ def add_subscriber(mailchimp, list_id, accounts, email):
 
     print('Adding notification target...')
 
-    members = []
-    columns = list(accounts[0].keys())
+    columns = list(account_set[0][0].keys())
     columns.remove(email)
-    for accounts_data in accounts:
-        member = {
-            "email_address": accounts_data[email],
-            "email_type": "html",
-            "status": "subscribed",
-            "merge_fields": {
-                # Following items are sample.
-                # Start `MMERGE5` because other fields (Fistname, Lastname, Address and Phone Number) are assigned initially.
-                # NOTE: Please fix columns by correspoiding your notification target.
-                "MMERGE5": accounts_data[columns[0]],
-                "MMERGE6": accounts_data[columns[1]],
-                "MMERGE7": accounts_data[columns[2]],
-                "MMERGE8": accounts_data[columns[3]],
-                "MMERGE9": accounts_data[columns[4]]
+    for accounts in account_set:
+        members = []
+        for account_data in accounts:
+            mmerge = {}
+            for idx, val in enumerate(json.loads(mmerges).values()):
+                mmerge.update({val: _val(account_data[columns[idx]])})
+            member = {
+                "email_address": account_data[email],
+                "email_type": "html",
+                "status": "subscribed",
+                "merge_fields": mmerge
             }
+
+            print('subscribing...', member)
+            members.append(member)
+
+        data = {
+            "members": members,
+            "update_existing": True
         }
 
-        print('subscribing...', member)
-        members.append(member)
-
-    data = {
-        "members": members,
-        "update_existing": True
-    }
-
-    try:
-        response = mailchimp.lists.batch_list_members(list_id, data)
-        print("Added subscribers")
-    except ApiClientError as error:
-        print("Error: {}".format(error.text))
-        sys.exit(1)
+        try:
+            response = mailchimp.lists.batch_list_members(list_id, data)
+            print("Added subscribers")
+        except ApiClientError as error:
+            print("Error: {}".format(error.text))
+            sys.exit(1)
 
 # https://mailchimp.com/developer/marketing/api/templates/add-template/
 def upload_template(mailchimp, template_name):
@@ -179,30 +239,54 @@ def upload_template(mailchimp, template_name):
         sys.exit(1)
 
 # https://mailchimp.com/developer/marketing/api/campaigns/add-campaign/
-def create_campaign(mailchimp, template_id, campaign_title):
-    if not template_id:
-        print('Error: Failed to get the template id')
-        sys.exit(1)
+def create_campaign(mailchimp, template_id, from_name, title_ja=None, title_en=None):
+     for template in templates:
+        if not template["id"]:
+            print('Error: Failed to get the template id')
+            sys.exit(1)
 
-    content = {
-        "type": "regular",
-        "settings": {
-            "subject_line": "subject line",
-            "preview_text": "preview text",
-            "title": campaign_title,
-            "from_name": "{your_name}",
-            "reply_to": FROM_EMAIL,
-            "use_conversation": False,
-            "to_name": "email_address",
-            "template_id": template_id,
-            "fb_comments": False
-        }
-    }
+        if template["lang"] == JAPANESE:
+            content = {
+                "type": "regular",
+                "settings": {
+                    "subject_line": "subject line",
+                    "preview_text": "preview text",
+                    "title": title_ja,
+                    "from_name": "Treasure Data Support",
+                    "reply_to": SUPPORT_EMAIL,
+                    "use_conversation": False,
+                    "to_name": "email_address",
+                    "template_id": template["id"],
+                    "fb_comments": False
+                }
+            }
 
+            print("Creating a campaign in Japanese version...")
+            _create_campaign(mailchimp, content)
+            print("Finished.")
+        else:
+            content = {
+                "type": "regular",
+                "settings": {
+                    "subject_line": "subject line",
+                    "preview_text": "preview text",
+                    "title": title_en,
+                    "from_name": "Treasure Data Support",
+                    "reply_to": SUPPORT_EMAIL,
+                    "use_conversation": False,
+                    "to_name": "email_address",
+                    "template_id": template["id"],
+                    "fb_comments": False
+                }
+            }
+
+            print("Creating a campaign in English version...")
+            _create_campaign(mailchimp, content)
+            print("Finished.")
+
+def _create_campaign(mailchimp, content):
     try:
-        print("Creating a campaing...")
         mailchimp.campaigns.create(content)
-        print("Campaign created")
     except ApiClientError as error:
         print("Error: {}".format(error.text))
         sys.exit(1)
@@ -212,19 +296,39 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("audience_name", help="Audience name", type=str)
     parser.add_argument("reason", help="Reason why customers get this notification", type=str)
-    parser.add_argument("template_name", help="Template name", type=str)
-    parser.add_argument("campaign_title", help="Campaign name", type=str)
+    parser.add_argument("mmerges", help="merge_vars", type=str)
+    parser.add_argument("template_name_ja", help="Template name (JA)", type=str)
+    parser.add_argument("template_name_en", help="Template name (EN)", type=str)
+    parser.add_argument("template_file_ja", help="Template HTML file name", type=str)
+    parser.add_argument("template_file_en", help="Template HTML file name", type=str)
+    parser.add_argument("campaign_ja", help="Campaign name (Japanese)", type=str)
+    parser.add_argument("campaign_en", help="Campaign name (English)", type=str)
+    parser.add_argument("lang_ja", help="Language (JA)", type=str)
+    parser.add_argument("lang_en", help="Language (EN)", type=str)
+    parser.add_argument("from_name", help="Set Email 'from'", type=str)
     parser.add_argument("job_id", help="Job ID", type=int)
     parser.add_argument("db", help="Database name for rejected users", type=int)
     parser.add_argument("table", help="Table name for rejected users", type=int)
     parser.add_argument("email", help="Email address", type=str)
     audience_name = args.audience_name
     reason = args.reason
-    template_name = args.template_name
-    campaign_title = args.campaign_title
+    mmerges = args.mmerges
+    template_name_ja = args.template_name_ja
+    template_name_en = args.template_name_en
+    template_file_ja = args.template_file_ja
+    template_file_en = args.template_file_en
+    campaign_ja = args.campaign_ja
+    campaign_en = args.campaign_en
+    lang_ja = args.lang_ja
+    lang_en = args.lang_en
+    from_name = args.from_name
     job_id = args.job_id
     db = args.db
     table = args.table
     email = args.email
 
-    start(audience_name, reason, template_name, campaign_title, job_id, email)
+    start(
+        audience_name, reason, mmerges, template_name_ja, template_name_en,
+        template_file_ja, template_file_en, campaign_ja, campaign_en,
+        lang_ja, lang_en, from_name, job_id, db, table, email
+    )
