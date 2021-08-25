@@ -38,5 +38,5 @@ _export:
       name_ja: 'Template FOO (JA)'
       name_en: 'Template FOO (EN)'
 
-      file_ja: 'template-ja.html'
-      file_en: 'template-en.html'
+      file_ja: 'template_ja.html'
+      file_en: 'template_en.html'
