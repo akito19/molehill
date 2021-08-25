@@ -68,8 +68,10 @@ fn valid_output_option() -> Result<(), Box<dyn Error>> {
 
     assert!(Path::new("foo/bar/mailchimp.py").exists());
     assert!(Path::new("foo/bar/notification.dig").exists());
+    assert!(Path::new("foo/bar/config.dig").exists());
     assert!(Path::new("foo/bar/sample.sql").exists());
-    assert!(Path::new("foo/bar/template.html").exists());
+    assert!(Path::new("foo/bar/template_ja.html").exists());
+    assert!(Path::new("foo/bar/template_en.html").exists());
 
     clean_dir("foo");
     Ok(())
@@ -98,14 +100,18 @@ fn without_options() -> Result<(), Box<dyn Error>> {
         .stdout(predicate::str::contains("Generated Digdag workflow files!"));
 
     assert!(Path::new("notification.dig").exists());
+    assert!(Path::new("config.dig").exists());
     assert!(Path::new("mailchimp.py").exists());
     assert!(Path::new("sample.sql").exists());
-    assert!(Path::new("template.html").exists());
+    assert!(Path::new("template_ja.html").exists());
+    assert!(Path::new("template_en.html").exists());
 
     fs::remove_file("notification.dig").unwrap();
+    fs::remove_file("config.dig").unwrap();
     fs::remove_file("mailchimp.py").unwrap();
     fs::remove_file("sample.sql").unwrap();
-    fs::remove_file("template.html").unwrap();
+    fs::remove_file("template_ja.html").unwrap();
+    fs::remove_file("template_en.html").unwrap();
     Ok(())
 }
 
