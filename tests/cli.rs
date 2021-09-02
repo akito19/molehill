@@ -26,7 +26,7 @@ fn invvalid_template_option_short() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn invvalid_template_option_long() -> Result<(), Box<dyn Error>> {
+fn invalid_template_option_long() -> Result<(), Box<dyn Error>> {
     let mut cmd = Command::cargo_bin("molehill")?;
 
     cmd.arg("--template").arg("path/to/file.txt");
@@ -37,22 +37,15 @@ fn invvalid_template_option_long() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-fn invalid_output_option_short() -> Result<(), Box<dyn Error>> {
-    let mut cmd = Command::cargo_bin("molehill")?;
-
-    cmd.arg("-o").arg("path/to/file.txt");
-    cmd.assert().failure()
-        .stderr(predicate::str::contains("Specify directory path for `-o` / `--output` option."));
-    Ok(())
-}
-
-#[test]
 fn invalid_output_option_long() -> Result<(), Box<dyn Error>> {
     let mut cmd = Command::cargo_bin("molehill")?;
+    let pathname = "path/to/dir";
 
-    cmd.arg("--output").arg("path/to/file.txt");
-    cmd.assert().failure()
-        .stderr(predicate::str::contains("Specify directory path for `-o` / `--output` option."));
+    cmd.arg("--output").arg(pathname);
+    cmd.assert().success()
+        .stdout(predicate::str::contains(pathname));
+
+    clean_dir("path");
     Ok(())
 }
 

@@ -1,5 +1,6 @@
 use std::path::Path;
 use std::process;
+use std::fs;
 // Modules
 use molehill::default_template;
 use molehill::template;
@@ -34,8 +35,13 @@ fn main() {
     let output = matches.value_of("output").unwrap();
 
     if !(Path::new(output.clone()).is_dir()) {
-        eprintln!("Specify directory path for `-o` / `--output` option.");
-        process::exit(exitcode::USAGE);
+        match fs::create_dir_all(output) {
+            Ok(()) => println!("{} is created", output),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                process::exit(exitcode::IOERR);
+            }
+        }
     }
 
     if let Some(template) = matches.value_of("template") {
